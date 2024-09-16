@@ -50,10 +50,12 @@ predicted = model.predict(X_test)
 # Evaluation on the test set
 accuracy = accuracy_score(Y_test, predicted)
 report = classification_report(Y_test, predicted)
+conf_matrix = confusion_matrix(Y_test, predicted)
 
 # Print evaluation results
 print("Test Set Accuracy: {:.2f}%".format(accuracy * 100))
 print("\nClassification Report:\n", report)
+print("\nConfusion Matrix:\n", conf_matrix)
 
 # Evaluation on the evaluation dataset
 evaluate_df = clean_text(evaluate_df)
