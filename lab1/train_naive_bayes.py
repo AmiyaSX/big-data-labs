@@ -1,11 +1,32 @@
 import pandas as pd
-# from sklearn.naive_bayes import MultinomialNB
 from multinomial_naive_bayes import MultinomialNB
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import emoji
 import re
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
 
+def plot_confusion_matrix(y_true, y_pred, title="Confusion Matrix"):
+    cm = confusion_matrix(y_true, y_pred)
+    fig, ax = plt.subplots(figsize=(6, 4))
+    cax = ax.matshow(cm, cmap='Blues')  # Display the matrix with a blue color map
+    plt.title(title)
+    fig.colorbar(cax)
+
+    # Labeling axes
+    ax.set_xticks([0, 1])
+    ax.set_yticks([0, 1])
+    ax.set_xticklabels(['Negative', 'Positive'])
+    ax.set_yticklabels(['Negative', 'Positive'])
+
+    # Adding text annotations (the confusion matrix values)
+    for i in range(2):
+        for j in range(2):
+            ax.text(j, i, cm[i, j], ha='center', va='center', color='black')
+
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.show()
 
 def give_emoji_free_text(text):
     return emoji.replace_emoji(text, replace="")
@@ -28,24 +49,17 @@ evaluate_df = pd.read_csv('./evaluation.csv')
 train_df = clean_text(train_df)
 test_df = clean_text(test_df)
 
-# Features extraction
-# tfidf = TfidfVectorizer(max_features=3000, stop_words='english')
-
 # Fit and transform training data
-# X_train = tfidf.fit_transform(train_df['cleaned_text'])
 Y_train = train_df['score']
 
-# Transform testing data
-# X_test = tfidf.transform(test_df['cleaned_text'])
 Y_test = test_df['score']
 
 # Build a MultinomialNB Classifier
 model = MultinomialNB()
 
 # Model training
-print("train...")
 model.fit(train_df['cleaned_text'], Y_train)
-print("predict...")
+
 # Predict
 predicted = model.predict(test_df['cleaned_text'])
 
@@ -59,10 +73,16 @@ print("Test Set Accuracy: {:.2f}%".format(accuracy * 100))
 print("\nClassification Report:\n", report)
 print("\nConfusion Matrix:\n", conf_matrix)
 
+plot_confusion_matrix(Y_test, predicted, title="Test Confusion Matrix")
+
 # Evaluation on the evaluation dataset
 evaluate_df = clean_text(evaluate_df)
-# X_evaluate = tfidf.transform(evaluate_df['cleaned_text'])
-# predicted_eval = model.predict(X_evaluate)
+X_evaluate = evaluate_df['cleaned_text']
+Y_evaluate = evaluate_df['score']
+predicted_eval = model.predict(X_evaluate)
 
-# Print predictions
-# print("\nPredictions on the evasluation dataset:\n", predicted_eval)
+print("Evaluation Set Accuracy: {:.2f}%".format(accuracy_score(Y_evaluate, predicted_eval) * 100))
+print("\nClassification Report:\n", classification_report(Y_evaluate, predicted_eval))
+print("\nConfusion Matrix:\n", confusion_matrix(Y_evaluate, predicted_eval))
+
+plot_confusion_matrix(Y_evaluate, predicted_eval, title="Evaluation Confusion Matrix")
